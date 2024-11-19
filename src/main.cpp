@@ -1,42 +1,62 @@
 #include <iostream>
-#include <cstring>
-#include "pageTable.h"
-#include "readReferences.h"
+#include <vector>
 
-using namespace std;
+#include "page_table.hpp"
+#include "read_references.hpp"
 
-void simulate(const vector<int>& referenceString, int frames, const string& algorithm) {
-    PageTable pageTable(frames);
-    vector<int> clockBits(1000, 0); // Vector para el LRU con reloj
+enum class Algorithm {
+    OPTIMAL,
+    FIFO,
+    LRU,
+    LRU_CLOCK,
+};
 
-    for (int i = 0; i < referenceString.size(); ++i) {
-        if (algorithm == "OPTIMAL") {
-            pageTable.optimal(referenceString, i);
-        } else if (algorithm == "FIFO") {
-            pageTable.fifo(referenceString[i]);
-        } else if (algorithm == "LRU") {
-            pageTable.lru(referenceString[i]);
-        } else if (algorithm == "LRU_CLOCK") {
-            pageTable.lruClock(referenceString[i], clockBits);
-        } else {
-            cerr << "Algoritmo desconocido: " << algorithm << endl;
-            return;
+void simulate(const std::vector<int> &references, const int frames, const Algorithm algorithm) {
+    PageTable page_table(frames);
+
+    switch (algorithm) {
+        case Algorithm::OPTIMAL: {
+            for (int i = 0; i < references.size(); ++i)
+                page_table.optimal(references, i);
+
+            std::cout << "Algorithm: OPTIMAL";
+            break;
+        }
+        case Algorithm::FIFO: {
+            for (const int reference : references)
+                page_table.fifo(reference);
+
+            std::cout << "Algorithm: FIFO";
+            break;
+        }
+        case Algorithm::LRU: {
+            for (const int reference : references)
+                page_table.lru(reference);
+
+            std::cout << "Algorithm: LRU";
+            break;
+        }
+        case Algorithm::LRU_CLOCK: {
+            std::vector clock_bits(1000, 0);
+            for (const int reference : references)
+                page_table.lru_clock(reference, clock_bits);
+
+            std::cout << "Algorithm: LRU_CLOCK";
+            break;
         }
     }
 
-    cout << "Algoritmo: " << algorithm << ", Fallos de página: " << pageTable.getPageFaults() << endl;
+    std::cout << ", Page faults: " << page_table.get_page_faults() << std::endl;
 }
 
 int main() {
-    //test
-    int frames = 4;
+    constexpr int frames = 4;
+    const std::vector references = {1, 2, 3, 4, 1, 2, 5, 2, 7, 8, 9, 10, 2, 11, 10, 12};
 
-    vector<int> referenceString = {1, 2, 3, 4, 1, 2, 5, 2, 7, 8, 9, 10, 2,11,10,12};
+    simulate(references, frames, Algorithm::FIFO);
+    simulate(references, frames, Algorithm::LRU);
+    simulate(references, frames, Algorithm::LRU_CLOCK);
+    simulate(references, frames, Algorithm::OPTIMAL);
 
-    simulate(referenceString, frames, "FIFO");
-    simulate(referenceString, frames, "LRU");
-    simulate(referenceString, frames, "LRU_CLOCK");
-    simulate(referenceString, frames, "OPTIMAL");
     return 0;
 }
-
