@@ -11,6 +11,7 @@ class PageTable {
     std::list<int> m_pages;
     int m_capacity;
     int m_page_faults = 0;
+    std::unordered_map<int, int> m_clock_bits;
 
 public:
     explicit PageTable(int const cap) : m_capacity(cap) {}
@@ -20,37 +21,28 @@ public:
     }
 
     void optimal(const std::vector<int> &references, const int current) {
-        if (m_page_map.find(references[current]) != m_page_map.end())
+        if (m_page_map.find(references[current]) != m_page_map.end()) {
             return;
-
+        }
         if (m_pages.size() == m_capacity) {
-            // TODO: is this right?
-            auto farthest = static_cast<std::vector<int>::difference_type>(-1);
+            int farthest = -1;
             int page_to_remove = -1;
-
             for (int page : m_pages) {
-                auto it = find(references.begin() + current + 1, references.end(), page);
+                auto it = std::find(references.begin() + current + 1, references.end(), page);
+                int distance = (it == references.end()) ? references.size() : (it - references.begin());
 
-                if (it == references.end()) {
-                    page_to_remove = page;
-                    break;
-                }
-
-                if (it - references.begin() > farthest) {
-                    farthest = it - references.begin();
+                if (distance > farthest) {
+                    farthest = distance;
                     page_to_remove = page;
                 }
             }
-
-            if (page_to_remove != -1)
-                remove(page_to_remove);
+            remove(page_to_remove);
         }
-
         insert(references[current]);
         m_page_faults++;
     }
 
-    void fifo(const int page) {
+    void fifo(const int& page) {
         if (m_page_map.find(page) != m_page_map.end())
             return;
 
@@ -61,42 +53,46 @@ public:
         m_page_faults++;
     }
 
-    void lru(const int page) {
+    void lru(const int& page) {
         if (m_page_map.find(page) != m_page_map.end()) {
             m_pages.erase(m_page_map[page]);
-            insert(page);
+            m_pages.push_front(page);
+            m_page_map[page] = m_pages.begin();
             return;
-        }
-
-        if (m_pages.size() == m_capacity)
-            remove(m_pages.back());
-
-        insert(page);
-        m_page_faults++;
-    }
-
-    void lru_clock(const int page, std::vector<int> &clock_bits) {
-        if (m_page_map.find(page) != m_page_map.end()) {
-            clock_bits[page] = 1;
-            return;
-        }
-
-        while (!m_pages.empty() && clock_bits[m_pages.front()] == 1) {
-            clock_bits[m_pages.front()] = 0;
-            m_pages.push_back(m_pages.front());
-            m_pages.pop_front();
         }
 
         if (m_pages.size() == m_capacity) {
-            clock_bits[m_pages.front()] = 0;
-            remove(m_pages.front());
+            int lru_page = m_pages.back();
+            remove(lru_page);
         }
 
         insert(page);
-        clock_bits[page] = 1;
         m_page_faults++;
     }
 
+    void lru_clock(const int& page) {
+        if (m_page_map.find(page) != m_page_map.end()) {
+            m_clock_bits[page] = 1; // Página ya está en memoria
+            return;
+        }
+
+        // Incrementar los fallos de página
+        m_page_faults++;
+
+        while (!m_pages.empty() && m_clock_bits[m_pages.front()] == 1) {
+            m_clock_bits[m_pages.front()] = 0; // Reinicia el bit de referencia
+            m_pages.push_back(m_pages.front()); // Mueve la página al final
+            m_pages.pop_front(); // Elimina la página de la parte frontal
+        }
+
+        if (m_pages.size() == m_capacity) {
+            int to_remove = m_pages.front(); // Página a eliminar
+            remove(to_remove); // Elimina la página
+        }
+
+        insert(page); // Inserta la nueva página
+        m_clock_bits[page] = 1; // Establece el bit de referencia para la nueva página
+    }
 private:
     void insert(const int page) {
         m_pages.push_back(page);
@@ -109,5 +105,6 @@ private:
 
         m_pages.erase(m_page_map[page]);
         m_page_map.erase(page);
+        m_clock_bits.erase(page);
     }
 };
