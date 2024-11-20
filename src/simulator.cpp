@@ -17,6 +17,8 @@ struct Arg {
 
 Args parse_args(int argc, const char *argv[]);
 
+auto usage_string = "Usage: simulapc -p <int:producers> -c <int:consumers> -s <int:queue_size> -t <int:max_wait_time>";
+
 int main(const int argc, const char *argv[]) {
     const auto [producers, consumers, queue_size, max_wait_time] = parse_args(argc, argv);
 
@@ -24,8 +26,6 @@ int main(const int argc, const char *argv[]) {
 
     return 0;
 }
-
-auto usage_string = "Usage: simulapc -p <int> -c <int> -s <int> -t <int>";
 
 Args parse_args(const int argc, const char *argv[]) {
     if (argc != 9) {
