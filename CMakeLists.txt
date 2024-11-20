@@ -13,4 +13,5 @@ add_executable(
 add_executable(
         simulapc
         src/simulator.cpp
+        src/monitor_queue.hpp
 )
