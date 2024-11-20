@@ -14,7 +14,7 @@ class PageTable {
     std::unordered_map<int, int> m_clock_bits;
 
 public:
-    explicit PageTable(int const cap) : m_capacity(cap) {}
+    explicit PageTable(const int cap) : m_capacity(cap) {}
 
     int get_page_faults() const {
         return m_page_faults;
@@ -45,7 +45,7 @@ public:
         m_page_faults++;
     }
 
-    void fifo(const int &page) {
+    void fifo(const int page) {
         if (m_page_map.find(page) != m_page_map.end())
             return;
 
@@ -56,7 +56,7 @@ public:
         m_page_faults++;
     }
 
-    void lru(const int &page) {
+    void lru(const int page) {
         if (m_page_map.find(page) != m_page_map.end()) {
             m_pages.erase(m_page_map[page]);
             m_pages.push_front(page);
@@ -73,7 +73,7 @@ public:
         m_page_faults++;
     }
 
-    void lru_clock(const int &page) {
+    void lru_clock(const int page) {
         if (m_page_map.find(page) != m_page_map.end()) {
             m_clock_bits[page] = 1;
             return;
