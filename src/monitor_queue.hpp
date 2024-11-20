@@ -2,20 +2,22 @@
 
 #include <mutex>
 #include <condition_variable>
-#include <vector>
+#include <chrono>
 #include <fstream>
+#include <optional>
 class MonitorQueue{
 private:
-    std::vector<int> queue;
-    int front,rear,items_stored,size,max_wait_time;
+    int* queue; //this is an array
+    size_t front,rear,items_stored,size,max_wait_time;
     std::mutex mutex;
-    std::condition_variable producer_go;
     std::condition_variable consumer_go;
-    std::fstream log_file;
-    void resize(int newsize);
+    std::ofstream* log_file;
+    void resize(size_t new_size);
 public:
-    MonitorQueue(int initial_size);
-    void set_log_file(std::fstream new_log_file);
-    void push();
-    int pop();
+    MonitorQueue(size_t initial_size, size_t wait_time);
+    //pass by reference opened log file, return if it is succesful
+    bool set_log_file(std::ofstream& new_log_file);
+    void push(int value);
+    //pop returns empty if timed out
+    std::optional<int> pop();
 };
