@@ -53,9 +53,8 @@ int main(const int argc, const char *argv[]) {
             break;
         }
         case Algorithm::LRU_CLOCK: {
-            std::vector clock_bits(1000, 0);
             for (const int reference : references)
-                page_table.lru_clock(reference, clock_bits);
+                page_table.lru_clock(reference);
 
             std::cout << "Algorithm: LRU_CLOCK";
             break;
