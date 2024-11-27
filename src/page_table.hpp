@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class PageTable {
@@ -12,9 +13,11 @@ class PageTable {
     int m_capacity;
     int m_page_faults = 0;
     std::unordered_map<int, int> m_clock_bits;
+    std::list<int>::iterator m_clock_pointer;
 
 public:
-    explicit PageTable(const int cap) : m_capacity(cap) {}
+        explicit PageTable(const int cap) : m_capacity(cap) {}
+
 
     int get_page_faults() const {
         return m_page_faults;
@@ -28,16 +31,17 @@ public:
         if (m_pages.size() == m_capacity) {
             int farthest = -1;
             int page_to_remove = -1;
-            for (int page : m_pages) {
+
+            for (int page: m_pages) {
                 auto it = std::find(references.begin() + current + 1, references.end(), page);
-                const int distance = it == references.end() ? references.size() : it - references.begin();
+
+                const int distance = (it == references.end()) ? references.size() : it - references.begin();
 
                 if (distance > farthest) {
                     farthest = distance;
                     page_to_remove = page;
                 }
             }
-
             remove(page_to_remove);
         }
 
@@ -64,16 +68,15 @@ public:
             return;
         }
 
+        m_page_faults++;
         if (m_pages.size() == m_capacity) {
             const int lru_page = m_pages.back();
             remove(lru_page);
         }
-
-        insert(page);
-        m_page_faults++;
+        insertOfLRU(page);
     }
 
-    void lru_clock(const int page) {
+    void clock(const int page) {
         if (m_page_map.find(page) != m_page_map.end()) {
             m_clock_bits[page] = 1;
             return;
@@ -81,19 +84,30 @@ public:
 
         m_page_faults++;
 
-        while (!m_pages.empty() && m_clock_bits[m_pages.front()] == 1) {
-            m_clock_bits[m_pages.front()] = 0;
-            m_pages.push_back(m_pages.front());
-            m_pages.pop_front();
-        }
-
         if (m_pages.size() == m_capacity) {
-            const int to_remove = m_pages.front();
-            remove(to_remove);
+            while (true) {
+                if (m_clock_pointer == m_pages.end()) {
+                    m_clock_pointer = m_pages.begin();
+                }
+
+                int current_page = *m_clock_pointer;
+
+                if (m_clock_bits[current_page] == 0) {
+                    removeOfRLU_CLOCK(current_page);
+                    break;
+                } else {
+                    m_clock_bits[current_page] = 0;
+                    ++m_clock_pointer;
+                }
+            }
         }
 
         insert(page);
         m_clock_bits[page] = 1;
+
+        if (m_pages.size() == 1) {
+            m_clock_pointer = m_pages.begin();
+        }
     }
 
 private:
@@ -107,6 +121,27 @@ private:
             return;
 
         m_pages.erase(m_page_map[page]);
+        m_page_map.erase(page);
+    }
+
+    void insertOfLRU(const int page) {
+        m_pages.push_front(page);
+    }
+
+    void removeOfRLU_CLOCK(const int page) {
+        if (m_page_map.find(page) == m_page_map.end()) {
+            return;
+        }
+
+        if (m_clock_pointer != m_pages.end() && *m_clock_pointer == page) {
+            m_clock_pointer = m_pages.erase(m_clock_pointer);
+            if (m_clock_pointer == m_pages.end() && !m_pages.empty()) {
+                m_clock_pointer = m_pages.begin();
+            }
+        } else {
+            m_pages.erase(m_page_map[page]);
+        }
+
         m_page_map.erase(page);
         m_clock_bits.erase(page);
     }

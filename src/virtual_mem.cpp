@@ -54,7 +54,7 @@ int main(const int argc, const char *argv[]) {
         }
         case Algorithm::LRU_CLOCK: {
             for (const int reference : references)
-                page_table.lru_clock(reference);
+                page_table.clock(reference);
 
             std::cout << "Algorithm: LRU_CLOCK";
             break;
@@ -134,6 +134,7 @@ Args parse_args(const int argc, const char *argv[]) {
 
     return {frames, algorithm, filepath};
 }
+
 
 std::string str_toupper(std::string s) {
     std::transform(
