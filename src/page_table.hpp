@@ -16,8 +16,7 @@ class PageTable {
     std::list<int>::iterator m_clock_pointer;
 
 public:
-        explicit PageTable(const int cap) : m_capacity(cap) {}
-
+    explicit PageTable(const int cap) : m_capacity(cap) {}
 
     int get_page_faults() const {
         return m_page_faults;
@@ -32,16 +31,17 @@ public:
             int farthest = -1;
             int page_to_remove = -1;
 
-            for (int page: m_pages) {
+            for (int page : m_pages) {
                 auto it = std::find(references.begin() + current + 1, references.end(), page);
 
-                const int distance = (it == references.end()) ? references.size() : it - references.begin();
+                const int distance = it == references.end() ? references.size() : it - references.begin();
 
                 if (distance > farthest) {
                     farthest = distance;
                     page_to_remove = page;
                 }
             }
+
             remove(page_to_remove);
         }
 
@@ -73,7 +73,7 @@ public:
             const int lru_page = m_pages.back();
             remove(lru_page);
         }
-        insertOfLRU(page);
+        insert_of_lru(page);
     }
 
     void clock(const int page) {
@@ -93,12 +93,12 @@ public:
                 int current_page = *m_clock_pointer;
 
                 if (m_clock_bits[current_page] == 0) {
-                    removeOfRLU_CLOCK(current_page);
+                    remove_of_rlu_clock(current_page);
                     break;
-                } else {
-                    m_clock_bits[current_page] = 0;
-                    ++m_clock_pointer;
                 }
+
+                m_clock_bits[current_page] = 0;
+                ++m_clock_pointer;
             }
         }
 
@@ -124,11 +124,11 @@ private:
         m_page_map.erase(page);
     }
 
-    void insertOfLRU(const int page) {
+    void insert_of_lru(const int page) {
         m_pages.push_front(page);
     }
 
-    void removeOfRLU_CLOCK(const int page) {
+    void remove_of_rlu_clock(const int page) {
         if (m_page_map.find(page) == m_page_map.end()) {
             return;
         }
