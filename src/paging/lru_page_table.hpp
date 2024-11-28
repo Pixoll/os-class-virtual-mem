@@ -8,9 +8,8 @@ public:
 
     void run_algorithm(const int page) override {
         if (m_page_map.find(page) != m_page_map.end()) {
-            m_pages.erase(m_page_map[page]);
-            m_pages.push_front(page);
-            m_page_map[page] = m_pages.begin();
+            remove(page);
+            insert(page);
             return;
         }
 
@@ -26,7 +25,7 @@ public:
 private:
     void insert(const int page) override {
         m_pages.push_front(page);
-        m_page_map[page] = --m_pages.end();
+        m_page_map[page] = m_pages.begin();
     }
 
     void remove(const int page) override {
