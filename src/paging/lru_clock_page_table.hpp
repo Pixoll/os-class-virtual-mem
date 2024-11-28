@@ -6,7 +6,7 @@
 #include "page_table.hpp"
 
 class LRUClockPageTable final : virtual public PageTable {
-    std::unordered_map<int, int> m_clock_bits;
+    std::unordered_map<int, bool> m_clock_bits;
     std::list<int>::iterator m_clock_pointer;
 
 public:
@@ -16,7 +16,7 @@ public:
 
     void run_algorithm(const int page) override {
         if (m_page_map.find(page) != m_page_map.end()) {
-            m_clock_bits[page] = 1;
+            m_clock_bits[page] = true;
             return;
         }
 
@@ -33,13 +33,13 @@ public:
                     break;
                 }
 
-                m_clock_bits[current_page] = 0;
+                m_clock_bits[current_page] = false;
                 ++m_clock_pointer;
             }
         }
 
         insert(page);
-        m_clock_bits[page] = 1;
+        m_clock_bits[page] = true;
 
         if (m_pages.size() == 1) {
             m_clock_pointer = m_pages.begin();
