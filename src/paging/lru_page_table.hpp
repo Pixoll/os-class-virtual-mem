@@ -26,6 +26,7 @@ public:
 private:
     void insert(const int page) override {
         m_pages.push_front(page);
+        m_page_map[page] = --m_pages.end();
     }
 
     void remove(const int page) override {
