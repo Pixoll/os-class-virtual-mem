@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <vector>
 
 #include "page_table.hpp"
