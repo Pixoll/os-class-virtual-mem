@@ -10,7 +10,9 @@ class LRUClockPageTable final : virtual public PageTable {
     std::list<int>::iterator m_clock_pointer;
 
 public:
-    explicit LRUClockPageTable(const int cap) : PageTable(Algorithm::LRU_CLOCK, cap) {}
+    explicit LRUClockPageTable(const int cap) : PageTable(Algorithm::LRU_CLOCK, cap) {
+        m_clock_pointer = m_pages.end();
+    }
 
     ~LRUClockPageTable() override = default;
 
@@ -28,7 +30,7 @@ public:
 
                 int current_page = *m_clock_pointer;
 
-                if (m_clock_bits[current_page] == 0) {
+                if (!m_clock_bits[current_page]) {
                     remove(current_page);
                     break;
                 }
@@ -41,7 +43,7 @@ public:
         insert(page);
         m_clock_bits[page] = true;
 
-        if (m_pages.size() == 1) {
+        if (m_clock_pointer == m_pages.end()) {
             m_clock_pointer = m_pages.begin();
         }
 
@@ -51,7 +53,7 @@ public:
 private:
     void insert(const int page) override {
         m_pages.push_back(page);
-        m_page_map[page] = m_pages.begin();
+        m_page_map[page] = std::prev(m_pages.end());
     }
 
     void remove(const int page) override {
@@ -59,7 +61,7 @@ private:
             return;
         }
 
-        if (m_clock_pointer != m_pages.end() && *m_clock_pointer == page) {
+        if (*m_clock_pointer == page) {
             m_clock_pointer = m_pages.erase(m_clock_pointer);
             if (m_clock_pointer == m_pages.end() && !m_pages.empty()) {
                 m_clock_pointer = m_pages.begin();
@@ -72,3 +74,4 @@ private:
         m_clock_bits.erase(page);
     }
 };
+
