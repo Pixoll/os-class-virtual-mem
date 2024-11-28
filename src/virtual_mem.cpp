@@ -1,17 +1,16 @@
+#include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "page_table.hpp"
-#include "read_references.hpp"
-
-enum class Algorithm {
-    OPTIMAL,
-    FIFO,
-    LRU,
-    LRU_CLOCK,
-};
+#include "paging/fifo_page_table.hpp"
+#include "paging/lru_clock_page_table.hpp"
+#include "paging/lru_page_table.hpp"
+#include "paging/optimal_page_table.hpp"
+#include "paging/page_table.hpp"
+#include "paging/read_references.hpp"
 
 struct Args {
     int frames;
@@ -28,40 +27,38 @@ int main(const int argc, const char *argv[]) {
 
     const std::vector references = read_references(filepath);
 
-    PageTable page_table(frames);
+    std::unique_ptr<PageTable> page_table;
 
     switch (algorithm) {
         case Algorithm::OPTIMAL: {
-            for (int i = 0; i < references.size(); ++i)
-                page_table.optimal(references, i);
-
-            std::cout << "Algorithm: OPTIMAL";
+            page_table = std::make_unique<OptimalPageTable>(references, frames);
             break;
         }
         case Algorithm::FIFO: {
-            for (const int reference : references)
-                page_table.fifo(reference);
-
-            std::cout << "Algorithm: FIFO";
+            page_table = std::make_unique<FIFOPageTable>(frames);
             break;
         }
         case Algorithm::LRU: {
-            for (const int reference : references)
-                page_table.lru(reference);
-
-            std::cout << "Algorithm: LRU";
+            page_table = std::make_unique<LRUPageTable>(frames);
             break;
         }
         case Algorithm::LRU_CLOCK: {
-            for (const int reference : references)
-                page_table.clock(reference);
-
-            std::cout << "Algorithm: LRU_CLOCK";
+            page_table = std::make_unique<LRUClockPageTable>(frames);
             break;
         }
     }
 
-    std::cout << ", Page faults: " << page_table.get_page_faults() << std::endl;
+    if (algorithm == Algorithm::OPTIMAL) {
+        for (int i = 0; i < references.size(); ++i)
+            page_table->run_algorithm(i);
+    } else {
+        for (const int reference : references)
+            page_table->run_algorithm(reference);
+    }
+
+    std::cout << "Algorithm: " << page_table->m_algo_name
+            << ", Page faults: " << page_table->get_page_faults()
+            << std::endl;
 
     return 0;
 }
@@ -134,7 +131,6 @@ Args parse_args(const int argc, const char *argv[]) {
 
     return {frames, algorithm, filepath};
 }
-
 
 std::string str_toupper(std::string s) {
     std::transform(
