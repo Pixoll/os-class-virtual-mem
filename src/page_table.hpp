@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class PageTable {
@@ -11,39 +12,37 @@ class PageTable {
     std::list<int> m_pages;
     int m_capacity;
     int m_page_faults = 0;
+    std::unordered_map<int, int> m_clock_bits;
+    std::list<int>::iterator m_clock_pointer;
 
 public:
-    explicit PageTable(int const cap) : m_capacity(cap) {}
+    explicit PageTable(const int cap) : m_capacity(cap) {}
 
     int get_page_faults() const {
         return m_page_faults;
     }
 
     void optimal(const std::vector<int> &references, const int current) {
-        if (m_page_map.find(references[current]) != m_page_map.end())
+        if (m_page_map.find(references[current]) != m_page_map.end()) {
             return;
+        }
 
         if (m_pages.size() == m_capacity) {
-            // TODO: is this right?
-            auto farthest = static_cast<std::vector<int>::difference_type>(-1);
+            int farthest = -1;
             int page_to_remove = -1;
 
             for (int page : m_pages) {
-                auto it = find(references.begin() + current + 1, references.end(), page);
+                auto it = std::find(references.begin() + current + 1, references.end(), page);
 
-                if (it == references.end()) {
-                    page_to_remove = page;
-                    break;
-                }
+                const int distance = it == references.end() ? references.size() : it - references.begin();
 
-                if (it - references.begin() > farthest) {
-                    farthest = it - references.begin();
+                if (distance > farthest) {
+                    farthest = distance;
                     page_to_remove = page;
                 }
             }
 
-            if (page_to_remove != -1)
-                remove(page_to_remove);
+            remove(page_to_remove);
         }
 
         insert(references[current]);
@@ -64,37 +63,51 @@ public:
     void lru(const int page) {
         if (m_page_map.find(page) != m_page_map.end()) {
             m_pages.erase(m_page_map[page]);
-            insert(page);
+            m_pages.push_front(page);
+            m_page_map[page] = m_pages.begin();
             return;
         }
 
-        if (m_pages.size() == m_capacity)
-            remove(m_pages.back());
-
-        insert(page);
         m_page_faults++;
+        if (m_pages.size() == m_capacity) {
+            const int lru_page = m_pages.back();
+            remove(lru_page);
+        }
+        insert_of_lru(page);
     }
 
-    void lru_clock(const int page, std::vector<int> &clock_bits) {
+    void clock(const int page) {
         if (m_page_map.find(page) != m_page_map.end()) {
-            clock_bits[page] = 1;
+            m_clock_bits[page] = 1;
             return;
         }
 
-        while (!m_pages.empty() && clock_bits[m_pages.front()] == 1) {
-            clock_bits[m_pages.front()] = 0;
-            m_pages.push_back(m_pages.front());
-            m_pages.pop_front();
-        }
+        m_page_faults++;
 
         if (m_pages.size() == m_capacity) {
-            clock_bits[m_pages.front()] = 0;
-            remove(m_pages.front());
+            while (true) {
+                if (m_clock_pointer == m_pages.end()) {
+                    m_clock_pointer = m_pages.begin();
+                }
+
+                int current_page = *m_clock_pointer;
+
+                if (m_clock_bits[current_page] == 0) {
+                    remove_of_rlu_clock(current_page);
+                    break;
+                }
+
+                m_clock_bits[current_page] = 0;
+                ++m_clock_pointer;
+            }
         }
 
         insert(page);
-        clock_bits[page] = 1;
-        m_page_faults++;
+        m_clock_bits[page] = 1;
+
+        if (m_pages.size() == 1) {
+            m_clock_pointer = m_pages.begin();
+        }
     }
 
 private:
@@ -109,5 +122,27 @@ private:
 
         m_pages.erase(m_page_map[page]);
         m_page_map.erase(page);
+    }
+
+    void insert_of_lru(const int page) {
+        m_pages.push_front(page);
+    }
+
+    void remove_of_rlu_clock(const int page) {
+        if (m_page_map.find(page) == m_page_map.end()) {
+            return;
+        }
+
+        if (m_clock_pointer != m_pages.end() && *m_clock_pointer == page) {
+            m_clock_pointer = m_pages.erase(m_clock_pointer);
+            if (m_clock_pointer == m_pages.end() && !m_pages.empty()) {
+                m_clock_pointer = m_pages.begin();
+            }
+        } else {
+            m_pages.erase(m_page_map[page]);
+        }
+
+        m_page_map.erase(page);
+        m_clock_bits.erase(page);
     }
 };
