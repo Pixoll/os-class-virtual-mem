@@ -20,8 +20,6 @@ public:
             return;
         }
 
-        m_page_faults++;
-
         if (m_pages.size() == m_capacity) {
             while (true) {
                 if (m_clock_pointer == m_pages.end()) {
@@ -46,12 +44,14 @@ public:
         if (m_pages.size() == 1) {
             m_clock_pointer = m_pages.begin();
         }
+
+        m_page_faults++;
     }
 
 private:
     void insert(const int page) override {
         m_pages.push_back(page);
-        m_page_map[page] = --m_pages.end();
+        m_page_map[page] = m_pages.begin();
     }
 
     void remove(const int page) override {

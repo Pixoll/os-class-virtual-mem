@@ -13,13 +13,11 @@ public:
             return;
         }
 
-        m_page_faults++;
-        if (m_pages.size() == m_capacity) {
-            const int lru_page = m_pages.back();
-            remove(lru_page);
-        }
+        if (m_pages.size() == m_capacity)
+            remove(m_pages.back());
 
         insert(page);
+        m_page_faults++;
     }
 
 private:
