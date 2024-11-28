@@ -6,8 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(
         mvirtual
         src/virtual_mem.cpp
-        src/page_table.hpp
-        src/read_references.hpp
+        src/paging/page_table.hpp
+        src/paging/optimal_page_table.hpp
+        src/paging/fifo_page_table.hpp
+        src/paging/lru_page_table.hpp
+        src/paging/lru_clock_page_table.hpp
+        src/paging/read_references.hpp
 )
 
 add_executable(
