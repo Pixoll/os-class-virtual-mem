@@ -29,4 +29,4 @@ Virtual memory simulator:
 ./build/mvirtual -m <int:frames> -a <string:algorithm> -f <string:filepath>
 ```
 
-`algorithm` (case insensitive) must be one of: `OPTIMAL`, `FIFO`, `LRU`, `LRU_CLOCK`.
+`algorithm` (case-insensitive) must be one of: `OPTIMAL`, `FIFO`, `LRU`, `LRU_CLOCK`.
