@@ -4,27 +4,29 @@
 
 With CMake (>= 3.5):
 ```bash
-mkdir build
+mkdir -p build
 cmake -S . -B build
 cd build
 make
 ```
 
-Without CMake (GCC, etc.):
+Without CMake (G++, etc.):
 ```bash
-mkdir build
-gcc src/simulator.cpp src/monitor_queue.hpp -o build/simulapc
-gcc src/virtual_mem.cpp src/paging/*.hpp -o build/mvirtual
+mkdir -p build
+g++ src/simulator.cpp -o build/simulapc
+g++ src/virtual_mem.cpp -o build/mvirtual
 ```
 
 ## Execute
 
 Monitor simulator:
 ```bash
-./build/simulapc
+./build/simulapc -p <int:producers> -c <int:consumers> -s <int:queue_size> -t <int:max_wait_time>
 ```
 
 Virtual memory simulator:
 ```bash
-./build/simulapc
+./build/mvirtual -m <int:frames> -a <string:algorithm> -f <string:filepath>
 ```
+
+`algorithm` (case insensitive) must be one of: `OPTIMAL`, `FIFO`, `LRU`, `LRU_CLOCK`.
