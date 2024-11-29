@@ -1,4 +1,4 @@
-# OS Class Virtual Memory
+# OS Class - Monitor & Virtual Memory Simulators
 
 ## Compile
 
