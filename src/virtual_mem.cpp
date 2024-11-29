@@ -91,6 +91,12 @@ Args parse_args(const int argc, const char *argv[]) {
             std::cerr << usage_string << std::endl;
             exit(1);
         }
+
+        if (frames <= 0) {
+            std::cerr << "-m must be greater than zero.\n"
+                    << usage_string << std::endl;
+            exit(1);
+        }
     } else {
         std::cerr << usage_string << std::endl;
         exit(1);

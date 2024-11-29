@@ -101,6 +101,12 @@ Args parse_args(const int argc, const char *argv[]) {
             std::cerr << usage_string << std::endl;
             exit(1);
         }
+
+        if (value <= 0) {
+            std::cerr << name << " must be greater than zero.\n"
+                    << usage_string << std::endl;
+            exit(1);
+        }
     }
 
     return {args[0].value, args[1].value, args[2].value, args[3].value};
