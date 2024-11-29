@@ -115,6 +115,7 @@ private:
         for (int i = 0; i < m_items_stored; ++i) {
             new_queue[i] = m_queue[(m_head + i) % m_size];
         }
+
         m_queue = std::move(new_queue);
         m_head = 0;
         m_tail = m_items_stored;

@@ -74,4 +74,3 @@ private:
         m_clock_bits.erase(page);
     }
 };
-
