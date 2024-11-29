@@ -30,8 +30,10 @@ int main(const int argc, const char *argv[]) {
 
     MonitorQueue monitor(queue_size, max_wait_time, "monitor.log");
 
-    std::vector<std::thread> producer_threads(producers);
-    std::vector<std::thread> consumer_threads(consumers);
+    std::vector<std::thread> producer_threads;
+    std::vector<std::thread> consumer_threads;
+    producer_threads.reserve(producers);
+    consumer_threads.reserve(consumers);
 
     for (int i = 0; i < producers; i++)
         producer_threads.emplace_back(producer_function, std::ref(monitor), i + 1, 10);
