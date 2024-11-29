@@ -56,7 +56,7 @@ void producer_function(MonitorQueue &queue, const int id, const int item_count) 
     queue.producer_started();
 
     for (int i = 0; i < item_count; ++i) {
-        const int value = id * 1000 + i;
+        const int value = id * item_count + i;
         queue.push(value);
         std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 100));
     }
